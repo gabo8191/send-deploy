@@ -23,26 +23,19 @@ then
 fi
 
 # Directorio donde se alojará el repositorio
-REPO_DIR="$HOME/Downloads/app"
+REPO_DIR="/var/www/html/app"
 REPO_URL="https://github.com/gabo8191/test-ssh.git"
 APACHE_CONF="/etc/apache2/sites-available/000-default.conf"
-APACHE_MAIN_CONF="/etc/apache2/apache2.conf"
-
-# Eliminar el directorio si ya existe
-if [ -d "$REPO_DIR" ]; then
-    echo "$PASSWORD" | sudo -S rm -rf "$REPO_DIR"
-fi
 
 # Crear el directorio para el repositorio
-mkdir -p "$REPO_DIR"
+sudo mkdir -p "$REPO_DIR"
 
 # Clonar o actualizar el repositorio desde GitHub
 if [ ! -d "$REPO_DIR/.git" ]; then
-    git clone "$REPO_URL" "$REPO_DIR"
+    echo "$PASSWORD" | sudo -S git clone "$REPO_URL" "$REPO_DIR"
     echo "Repository cloned"
 else
-    cd "$REPO_DIR"
-    git pull origin main
+    echo "$PASSWORD" | sudo -S git -C "$REPO_DIR" pull origin main
     echo "Repository updated"
 fi
 
@@ -60,13 +53,6 @@ echo "$PASSWORD" | sudo -S tee $APACHE_CONF > /dev/null <<EOT
     CustomLog \${APACHE_LOG_DIR}/access.log combined
 </VirtualHost>
 EOT
-
-# Configurar ServerName en apache2.conf para evitar advertencias
-if ! grep -q "ServerName localhost" "$APACHE_MAIN_CONF"; then
-    echo "$PASSWORD" | sudo -S tee -a $APACHE_MAIN_CONF > /dev/null <<EOT
-ServerName localhost
-EOT
-fi
 
 # Verificar la configuración de Apache y reiniciar el servicio
 echo "$PASSWORD" | sudo -S apache2ctl configtest
