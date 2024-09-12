@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Contraseña sudo
-PASSWORD="tu_contraseña"
+PASSWORD="osboxes.org"
 
 echo "Script started"
 
