@@ -2,14 +2,16 @@
 
 echo "Script started"
 
-sudo apt-get update
+sudo apt-get update -y
 
-sudo apt-get install -y nginx
-
-echo "Nginx installed"
+if ! command -v nginx &> /dev/null
+then
+    sudo apt-get install -y nginx
+    echo "Nginx installed"
+fi
 
 REPO_DIR="/var/www/html/app"
-REPO_URL="https://github.com/gabo8191/Frontend-citas.git"
+REPO_URL="https://github.com/gabo8191/test-ssh.git"
 NGINX_CONF="/etc/nginx/sites-available/default"
 
 if [ ! -d "$REPO_DIR" ]; then
@@ -20,8 +22,6 @@ else
   sudo git pull origin main
   echo "Repository updated"
 fi
-
-sudo mkdir -p $REPO_DIR
 
 sudo chown -R www-data:www-data $REPO_DIR
 sudo chmod -R 755 $REPO_DIR

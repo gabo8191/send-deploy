@@ -4,10 +4,12 @@ const { Client } = require('ssh2');
 const conn = new Client();
 
 const SSH_CONFIG = {
-  host: '192.1',
+  host: '192.1.1.1.1',
   port: 443,
   username: 'osboxes',
+  agent: process.env.SSH_AUTH_SOCK,
 };
+
 
 const SCRIPT_PATH = 'deploy_script.sh';
 function deploy() {
