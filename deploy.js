@@ -9,7 +9,7 @@ const SSH_CONFIG = {
   username: 'osboxes',
 };
 
-const SCRIPT_PATH = '/path/to/your/script/deploy.sh';
+const SCRIPT_PATH = 'deploy_script.sh';
 function deploy() {
   return new Promise((resolve, reject) => {
     conn.on('ready', () => {
