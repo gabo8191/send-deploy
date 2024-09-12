@@ -39,6 +39,9 @@ else
     echo "Repository updated"
 fi
 
+# Agregar el directorio a la lista de directorios seguros de Git
+echo "$PASSWORD" | sudo -S git config --global --add safe.directory /var/www/html/app
+
 # Configurar Apache para servir el repositorio en localhost
 echo "$PASSWORD" | sudo -S tee $APACHE_CONF > /dev/null <<EOT
 <VirtualHost *:80>
@@ -52,6 +55,11 @@ echo "$PASSWORD" | sudo -S tee $APACHE_CONF > /dev/null <<EOT
     ErrorLog \${APACHE_LOG_DIR}/error.log
     CustomLog \${APACHE_LOG_DIR}/access.log combined
 </VirtualHost>
+EOT
+
+# Establecer el ServerName para evitar advertencias
+echo "$PASSWORD" | sudo -S tee -a /etc/apache2/apache2.conf > /dev/null <<EOT
+ServerName localhost
 EOT
 
 # Verificar la configuración de Apache y reiniciar el servicio
