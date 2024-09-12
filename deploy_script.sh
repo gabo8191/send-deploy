@@ -40,15 +40,25 @@ else
     echo "Repository updated"
 fi
 
-# Agregar el directorio a la lista de directorios seguros de Git
-echo "$PASSWORD" | sudo -S git config --global --add safe.directory /var/www/html/app
+# Configurar Apache para servir el repositorio en localhost
+echo "$PASSWORD" | sudo -S tee /etc/apache2/sites-available/000-default.conf > /dev/null <<EOT
+<VirtualHost *:80>
+    ServerAdmin webmaster@localhost
+    DocumentRoot $REPO_DIR
+    <Directory $REPO_DIR>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+    ErrorLog \${APACHE_LOG_DIR}/error.log
+    CustomLog \${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+EOT
 
-# Configurar permisos para el directorio
-echo "$PASSWORD" | sudo -S chown -R www-data:www-data /var/www/html/app
-echo "$PASSWORD" | sudo -S chmod -R 755 /var/www/html/app
-
-# Configurar el nombre del servidor en Apache
-echo "$PASSWORD" | sudo -S sh -c 'echo "ServerName localhost" >> /etc/apache2/apache2.conf'
+# Configurar el nombre del servidor en Apache si no está configurado
+if ! grep -q "ServerName localhost" /etc/apache2/apache2.conf; then
+    echo "$PASSWORD" | sudo -S sh -c 'echo "ServerName localhost" >> /etc/apache2/apache2.conf'
+fi
 
 # Verificar la configuración de Apache
 echo "$PASSWORD" | sudo -S apache2ctl configtest
