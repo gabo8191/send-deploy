@@ -47,6 +47,9 @@ echo "$PASSWORD" | sudo -S git config --global --add safe.directory /var/www/htm
 echo "$PASSWORD" | sudo -S chown -R www-data:www-data /var/www/html/app
 echo "$PASSWORD" | sudo -S chmod -R 755 /var/www/html/app
 
+# Configurar el nombre del servidor en Apache
+echo "$PASSWORD" | sudo -S sh -c 'echo "ServerName localhost" >> /etc/apache2/apache2.conf'
+
 # Verificar la configuración de Apache
 echo "$PASSWORD" | sudo -S apache2ctl configtest
 
