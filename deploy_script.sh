@@ -25,10 +25,11 @@ fi
 # Directorio donde se alojará el repositorio
 REPO_DIR="/var/www/html/app"
 REPO_URL="https://github.com/gabo8191/test-ssh.git"
-APACHE_CONF="/etc/apache2/sites-available/000-default.conf"
 
-# Crear el directorio para el repositorio
-sudo mkdir -p "$REPO_DIR"
+# Crear el directorio si no existe
+if [ ! -d "$REPO_DIR" ]; then
+    echo "$PASSWORD" | sudo -S mkdir -p "$REPO_DIR"
+fi
 
 # Clonar o actualizar el repositorio desde GitHub
 if [ ! -d "$REPO_DIR/.git" ]; then
@@ -42,28 +43,14 @@ fi
 # Agregar el directorio a la lista de directorios seguros de Git
 echo "$PASSWORD" | sudo -S git config --global --add safe.directory /var/www/html/app
 
-# Configurar Apache para servir el repositorio en localhost
-echo "$PASSWORD" | sudo -S tee $APACHE_CONF > /dev/null <<EOT
-<VirtualHost *:80>
-    ServerAdmin webmaster@localhost
-    DocumentRoot $REPO_DIR
-    <Directory $REPO_DIR>
-        Options Indexes FollowSymLinks
-        AllowOverride All
-        Require all granted
-    </Directory>
-    ErrorLog \${APACHE_LOG_DIR}/error.log
-    CustomLog \${APACHE_LOG_DIR}/access.log combined
-</VirtualHost>
-EOT
+# Configurar permisos para el directorio
+echo "$PASSWORD" | sudo -S chown -R www-data:www-data /var/www/html/app
+echo "$PASSWORD" | sudo -S chmod -R 755 /var/www/html/app
 
-# Establecer el ServerName para evitar advertencias
-echo "$PASSWORD" | sudo -S tee -a /etc/apache2/apache2.conf > /dev/null <<EOT
-ServerName localhost
-EOT
-
-# Verificar la configuración de Apache y reiniciar el servicio
+# Verificar la configuración de Apache
 echo "$PASSWORD" | sudo -S apache2ctl configtest
+
+# Reiniciar Apache
 if [ $? -eq 0 ]; then
     echo "$PASSWORD" | sudo -S systemctl restart apache2
     echo "The repository has been deployed to $REPO_DIR and Apache is configured to serve it on localhost"
