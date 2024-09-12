@@ -26,11 +26,15 @@ fi
 REPO_DIR="$HOME/Downloads/app"
 REPO_URL="https://github.com/gabo8191/test-ssh.git"
 APACHE_CONF="/etc/apache2/sites-available/000-default.conf"
+APACHE_MAIN_CONF="/etc/apache2/apache2.conf"
 
-# Crear el directorio si no existe
-if [ ! -d "$REPO_DIR" ]; then
-    mkdir -p "$REPO_DIR"
+# Eliminar el directorio si ya existe
+if [ -d "$REPO_DIR" ]; then
+    echo "$PASSWORD" | sudo -S rm -rf "$REPO_DIR"
 fi
+
+# Crear el directorio para el repositorio
+mkdir -p "$REPO_DIR"
 
 # Clonar o actualizar el repositorio desde GitHub
 if [ ! -d "$REPO_DIR/.git" ]; then
@@ -57,8 +61,18 @@ echo "$PASSWORD" | sudo -S tee $APACHE_CONF > /dev/null <<EOT
 </VirtualHost>
 EOT
 
+# Configurar ServerName en apache2.conf para evitar advertencias
+if ! grep -q "ServerName localhost" "$APACHE_MAIN_CONF"; then
+    echo "$PASSWORD" | sudo -S tee -a $APACHE_MAIN_CONF > /dev/null <<EOT
+ServerName localhost
+EOT
+fi
+
 # Verificar la configuración de Apache y reiniciar el servicio
 echo "$PASSWORD" | sudo -S apache2ctl configtest
-echo "$PASSWORD" | sudo -S systemctl restart apache2
-
-echo "The repository has been deployed to $REPO_DIR and Apache is configured to serve it on localhost"
+if [ $? -eq 0 ]; then
+    echo "$PASSWORD" | sudo -S systemctl restart apache2
+    echo "The repository has been deployed to $REPO_DIR and Apache is configured to serve it on localhost"
+else
+    echo "Apache configuration test failed. Please check the configuration."
+fi
